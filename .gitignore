@@ -1,0 +1,47 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Logs
+*.log
+
+# Directories
+data/
+/build/
+vendor/
+
+# Dependency directories (for go modules)
+go.sum
+go.work
+go.work.sum
+
+# IDE or editor specific files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Environment variables
+.env
+.env.local
+
+# Git specific files
+*.orig
+
+# Node.js files (if using frontend in the same project)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage files
+coverage/
+*.coverprofile
+
+# Docker
+docker-compose.override.yml

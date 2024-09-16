@@ -1,0 +1,47 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "${PORT_DB}:5432"
+    restart: always
+
+  # goose:
+  #   image: golang:alpine
+  #   container_name: goose_migration
+  #   depends_on:
+  #     - db
+  #   volumes:
+  #     - ./backend/migrations:/migrations
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #   command:
+  #     - "goose -dir /migrations postgres $DATABASE_URL up"
+  #   restart: on-failure
+    
+  # myapp:
+  #     image: my-app-image
+  #     env_file:
+  #       - .env
+  #     command: goose -dir ./migrations postgres $DATABASE_CONNECTION_ENV up
+  # web:
+  #   build: .
+  #   command: python manage.py runserver 0.0.0.0:8000 
+  #   volumes:
+  #     - .:/code 
+  #   ports:
+  #     - "8000:8000" 
+  #     - "${APP_PORT}:80"
+  #   environment:
+  #     - POSTGRES_NAME=postgres
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #   depends_on:
+  #     - db
