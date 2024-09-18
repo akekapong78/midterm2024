@@ -1,25 +1,36 @@
 package item
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/akekapong78/workflow/internal/model"
+	"github.com/akekapong78/workflow/internal/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type Controller struct {
-	Service Service
+	Service  Service
+	database *gorm.DB
 }
 
 func NewController(db *gorm.DB) Controller {
 	return Controller{
-		Service: NewService(db),
+		Service:  NewService(db),
+		database: db,
 	}
 }
 
 func (c Controller) CreateItem(ctx *gin.Context) {
+	// Get user id
+	userId, err := utils.GetUserIdByUsername(ctx.MustGet("username").(string), c.database)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
 	req := model.RequestItem{}
 
 	if err := ctx.Bind(&req); err != nil {
@@ -29,7 +40,7 @@ func (c Controller) CreateItem(ctx *gin.Context) {
 		return
 	}
 
-	item, err := c.Service.CreateItem(req)
+	item, err := c.Service.CreateItem(req, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
@@ -41,7 +52,15 @@ func (c Controller) CreateItem(ctx *gin.Context) {
 }
 
 func (c Controller) GetItem(ctx *gin.Context) {
-	userId := 1
+	// Get user id
+	userId, err := utils.GetUserIdByUsername(ctx.MustGet("username").(string), c.database)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
 	// Path param
 	id := ctx.Param("id")
 	if id == "" {
@@ -51,7 +70,7 @@ func (c Controller) GetItem(ctx *gin.Context) {
 		return
 	}
 
-	item, err := c.Service.GetItem(id, userId)
+	item, err := c.Service.GetItem(id, userId, ctx.MustGet("role").(string))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
@@ -63,12 +82,16 @@ func (c Controller) GetItem(ctx *gin.Context) {
 }
 
 func (c Controller) GetItems(ctx *gin.Context) {
-	userId := 1
-	
-	username, _ := ctx.Get("username")
-	fmt.Println("username: ", username)
+	// Get user id
+	userId, err := utils.GetUserIdByUsername(ctx.MustGet("username").(string), c.database)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
-	items, err := c.Service.GetItems(userId)
+	items, err := c.Service.GetItems(userId, ctx.MustGet("role").(string))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
@@ -80,7 +103,14 @@ func (c Controller) GetItems(ctx *gin.Context) {
 }
 
 func (c Controller) UpdateItem(ctx *gin.Context) {
-	userId := 1
+	// Get user id
+	userId, err := utils.GetUserIdByUsername(ctx.MustGet("username").(string), c.database)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
 	// Path param
 	id := ctx.Param("id")
@@ -89,7 +119,7 @@ func (c Controller) UpdateItem(ctx *gin.Context) {
 			"message": "bad request",
 		})
 		return
-	}	
+	}
 
 	req := model.RequestItem{}
 	if err := ctx.Bind(&req); err != nil {
@@ -97,9 +127,9 @@ func (c Controller) UpdateItem(ctx *gin.Context) {
 			"message": "bad request",
 		})
 		return
-	}	
+	}
 
-	item, err := c.Service.UpdateItem(id, req, userId)
+	item, err := c.Service.UpdateItem(id, req, userId, ctx.MustGet("role").(string))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
@@ -111,8 +141,6 @@ func (c Controller) UpdateItem(ctx *gin.Context) {
 }
 
 func (c Controller) UpdateItemStatus(ctx *gin.Context) {
-	userId := 1
-
 	// Path param
 	id := ctx.Param("id")
 	if id == "" {
@@ -128,15 +156,15 @@ func (c Controller) UpdateItemStatus(ctx *gin.Context) {
 			"message": "bad request",
 		})
 		return
-	}	
+	}
 
-	item, err := c.Service.UpdateItemStatus(id, req, userId)
+	item, err := c.Service.UpdateItemStatus(id, req, ctx.MustGet("role").(string))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": err.Error(),
 		})
 		return
-	}	
+	}
 
 	ctx.JSON(http.StatusOK, item)
 }

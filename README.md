@@ -11,6 +11,7 @@ docker compose up -d
 ```bash
 cd backend
 go mod tidy
+goose -dir ./migrations postgres postgres://devpool:123456789@localhost:5432/mydb up
 go run cmd/app/main.go
 ```
 

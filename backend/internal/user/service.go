@@ -38,6 +38,19 @@ func (s Service) GetUser(id string) (model.ResponseUser, error) {
 	return user, nil
 }
 
+func (s Service) GetUserByUsername(username string) (model.ResponseUser, error) {
+	user, err := s.Repository.GetUserByUsername(username)
+	if err != nil {
+		return model.ResponseUser{}, err
+	}
+
+	return model.ResponseUser{
+		ID: user.ID,
+		Username: user.Username,
+		Role: user.Role,
+	}, nil
+}
+
 func (s Service) CreateUser(req *model.RequestUser) (model.ResponseUser, error) {
 	// Hash password
 	hash, err := auth.HashPassword(req.Password)
@@ -46,7 +59,7 @@ func (s Service) CreateUser(req *model.RequestUser) (model.ResponseUser, error) 
 	}
 
 	req.Password = hash
-	
+
 	// Create user
 	userId, err := s.Repository.CreateUser(req)
 	if err != nil {

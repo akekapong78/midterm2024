@@ -16,13 +16,13 @@ func NewService(db *gorm.DB) Service {
 	}
 }
 
-func (s Service) CreateItem(req model.RequestItem) (model.ResponseItem, error) {
+func (s Service) CreateItem(req model.RequestItem, userId uint) (model.ResponseItem, error) {
 	item := model.Item{
 		Title:    req.Title,
 		Price:    req.Price,
 		Quantity: req.Quantity,
 		Status:   constant.ItemPendingStatus,
-		OwnerID:  1,
+		OwnerID:  userId,
 	}
 
 	id, err := s.Repository.CreateItem(&item)
@@ -39,8 +39,8 @@ func (s Service) CreateItem(req model.RequestItem) (model.ResponseItem, error) {
 	}, nil
 }
 
-func (s Service) GetItem(id string, userId int) (model.ResponseItem, error) {
-	item, err := s.Repository.GetItem(id, userId)
+func (s Service) GetItem(id string, userId uint, role string) (model.ResponseItem, error) {
+	item, err := s.Repository.GetItem(id, userId, role)
 	if err != nil {
 		return model.ResponseItem{}, err
 	}
@@ -54,8 +54,8 @@ func (s Service) GetItem(id string, userId int) (model.ResponseItem, error) {
 	}, nil
 }
 
-func (s Service) GetItems(userId int) ([]model.ResponseItem, error) {
-	items, err := s.Repository.GetItems(userId)
+func (s Service) GetItems(userId uint, role string) ([]model.ResponseItem, error) {
+	items, err := s.Repository.GetItems(userId, role)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +73,9 @@ func (s Service) GetItems(userId int) ([]model.ResponseItem, error) {
 	return responseItems, nil
 }
 
-func (s Service) UpdateItem(id string, req model.RequestItem, userId int) (model.ResponseItem, error) {
+func (s Service) UpdateItem(id string, req model.RequestItem, userId uint, role string) (model.ResponseItem, error) {
 	// check if item exists
-	item, err := s.Repository.GetItem(id, userId)
+	item, err := s.Repository.GetItem(id, userId, role)
 	if err != nil {
 		return model.ResponseItem{}, err
 	}
@@ -98,9 +98,9 @@ func (s Service) UpdateItem(id string, req model.RequestItem, userId int) (model
 	}, nil
 }
 
-func (s Service) UpdateItemStatus(id string, req model.RequestUpdateItemStatus, userId int) (model.ResponseItem, error) {
+func (s Service) UpdateItemStatus(id string, req model.RequestUpdateItemStatus, role string) (model.ResponseItem, error) {
 	// check if item exists
-	item, err := s.Repository.GetItem(id, userId)
+	item, err := s.Repository.GetItem(id, 0, role)
 	if err != nil {
 		return model.ResponseItem{}, err
 	}
