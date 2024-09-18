@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
+	"github.com/akekapong78/workflow/internal/auth"
 	"github.com/akekapong78/workflow/internal/item"
+	"github.com/akekapong78/workflow/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -15,18 +16,8 @@ import (
 
 func main() {
 
-	// load env
-	// Absolute path or relative path to the .env file
-	// err := godotenv.Load("/path/to/your/.env")
-	// if err != nil {
-	// 		log.Fatalf("Error loading .env file")
-	// }
-
-	// // Access environment variables
-	// dbUser := os.Getenv("POSTGRES_USER")
-	// dbPass := os.Getenv("POSTGRES_PASSWORD")
-
-	err := godotenv.Load("../../../.env")
+	// Load env
+	err := godotenv.Load("./../.env")
   if err != nil {
     log.Fatal("Error loading .env file")
   }
@@ -40,28 +31,54 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	
-	// Controller
-	controller := item.NewController(db)
 
 	// Router
 	r := gin.Default()
 
+	// CORS
 	config := cors.DefaultConfig()
-
-	// frontend URL
 	config.AllowOrigins = []string{
-		"http://localhost:8000",
+		"http://localhost:8000",  // Frontend url
 		"http://127.0.0.1:8000",
 	}
 
 	r.Use(cors.New(config))
 	
-	// Register router
-	r.POST("/items", controller.CreateItem)
+
+	// New Controller 
+	userController := user.NewController(db, os.Getenv("JWT_SECRET"), os.Getenv("BACKEND_DOMAIN"))
+	itemController := item.NewController(db)
 	
+	// Routes Group
+	v1 := r.Group("/api/v1")
+	
+	// User Group 
+	userGroup := v1.Group("/users")
+	// Without middleware
+	userGroup.POST("/register", userController.Register)
+	userGroup.POST("/login", userController.Login)
+	// With middleware
+	userGroup.Use(auth.Guard(os.Getenv("JWT_SECRET")))
+	userGroup.GET("/", userController.GetUsers)
+	userGroup.GET("/:id", userController.GetUser)
+
+	// Item Group
+	itemGroup := v1.Group("/items")
+	itemGroup.Use(auth.Guard(os.Getenv("JWT_SECRET")))
+	itemGroup.POST("/", itemController.CreateItem)
+	itemGroup.GET("/:id", itemController.GetItem)
+	itemGroup.GET("/", itemController.GetItems)
+	itemGroup.PUT("/:id", itemController.UpdateItem)
+	itemGroup.PATCH("/:id", itemController.UpdateItemStatus)
+
+	// Get the port from the environment variable
+	port := os.Getenv("PORT_API")
+	if port == "" {
+			port = "8080" // Default port
+	}
+
 	// Start server
-	if err := r.Run(); err != nil {
+	if err := r.Run(":" + port); err != nil {
 		log.Panic(err)
 	}
 }
