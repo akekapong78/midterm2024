@@ -26,8 +26,8 @@ go.work.sum
 *.swp
 
 # Environment variables
-.env
-.env.local
+# .env
+# .env.local
 
 # Git specific files
 *.orig
