@@ -23,6 +23,7 @@ npm run dev
 ```
 
 # Project tree
+```bash
 .
 ├── README.md
 ├── compose.yml
@@ -45,3 +46,4 @@ npm run dev
     ├── postcss.config.mjs
     ├── tailwind.config.ts
     └── tsconfig.json
+```
