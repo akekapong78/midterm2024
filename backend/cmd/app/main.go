@@ -38,9 +38,11 @@ func main() {
 	// CORS
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
-		"http://localhost:8000", // Frontend url
-		"http://127.0.0.1:8000",
+		"http://localhost:3000", // Frontend url
+		"http://127.0.0.1:3000",
 	}
+	config.AllowCredentials = true
+	
 
 	r.Use(cors.New(config))
 
